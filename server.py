@@ -42,6 +42,7 @@ def task_details(id):
         "ok": True
     }
 
+
 @app.route('/tasks/<int:id>', methods=["DELETE"])
 def task_delete(id):
     con = sqlite3.connect("taskdb.db")
@@ -53,6 +54,7 @@ def task_delete(id):
     return {
         "ok": True
     }
+
 
 @app.route('/tasks', methods=["POST"])
 def task_create():
@@ -66,6 +68,34 @@ def task_create():
 
     return {
         "id": out[0],
+    }
+
+
+@app.route('/tasks/<int:id>', methods=["PUT"])
+def task_update(id):
+    con = sqlite3.connect("taskdb.db")
+    cur = con.cursor()
+    print(request.json)
+    cur.execute("""
+    UPDATE tasks SET content = ? WHERE id = ?
+    """, (request.json["content"], id))
+    con.commit()
+    return {
+        "ok": True
+    }
+
+
+@app.route('/set/<int:id>', methods=["PUT"])
+def check_update(id):
+    con = sqlite3.connect("taskdb.db")
+    cur = con.cursor()
+    print(request.json)
+    cur.execute("""
+    UPDATE tasks SET done = ? WHERE id = ?
+    """, (request.json["done"], id))
+    con.commit()
+    return {
+        "ok": True
     }
 
 

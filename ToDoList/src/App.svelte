@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
 
+  let mod = false;
   let array = [];
   let content = "";
   onMount(async () => {
@@ -24,6 +25,51 @@
     array = [...array, { content: content, id: data.id, done: false }];
   }
 
+  async function checkbox(event) {
+    const done = event.target.checked;
+    const id = event.target.id.substring(8);
+    const response = await fetch("http://localhost:8080/set/" + id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        done: done,
+      }),
+    });
+    const data = await response.json();
+    array = array.map((t) => {
+      if (t.id == id) {
+        t.done = done;
+      }
+      return t;
+    });
+  }
+
+  async function amod(event) {
+    mod = !mod;
+    if (!mod) {
+      const dati = event.target.parentNode.querySelector("input").value;
+      const id = event.target.parentNode.querySelector("input").id.substring(8);
+      const response = await fetch("http://localhost:8080/tasks/" + id, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: dati,
+        }),
+      });
+      const data = await response.json();
+      array = array.map((t) => {
+        if (t.id == id) {
+          t.content = dati;
+        }
+        return t;
+      });
+    }
+  }
+
   async function deleteTask(event) {
     const id = event.target.parentNode.querySelector("input").id.substring(8);
     const response = await fetch("http://localhost:8080/tasks/" + id, {
@@ -43,9 +89,19 @@
   <li>
     {#each array as t}
       <ul>
-        <input type="checkbox" id="checkbox{t.id}" />
-        <label for="checkbox{t.id}">{t.content}</label>
+        {#if !mod}
+          <input
+            on:click={checkbox}
+            type="checkbox"
+            id="checkbox{t.id}"
+            bind:checked={t.done}
+          />
+          <label for="checkbox{t.id}">{t.content}</label>
+        {:else}
+          <input type="text" id="checkbox{t.id}" bind:value={t.content} />
+        {/if}
         <button on:click={deleteTask} class="delete-btn">Elimina</button>
+        <button on:click={amod} class="delete-btn">Modifica</button>
       </ul>
     {/each}
   </li>
